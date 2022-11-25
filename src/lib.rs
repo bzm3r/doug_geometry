@@ -15,7 +15,7 @@ pub enum RectDirections {
 }
 
 impl Point {
-    fn directions_to(&self, other: &Point) -> Vec<RectDirections> {
+    fn directions_to(&self, other: Point) -> Vec<RectDirections> {
         let mut result = Vec::with_capacity(2);
         use RectDirections::*;
         if self.x > other.x {
@@ -53,24 +53,24 @@ pub struct Polygon {
     pub vertical_inversions: usize,
 }
 
-
 impl Polygon {
     pub fn find_bottom_left_most_point(&self) {}
 
     pub fn from_points(mut points: Vec<Point>) -> Polygon {
         assert!(points.len() > 3);
 
-        let directions = Vec::<RectDirections>::with_capacity(points.len() - 1);
+        let mut directions = Vec::<RectDirections>::with_capacity(points.len() - 1);
 
         use RectDirections::*;
         let mut reverse_points = false;
-        let mut bottom_left_most = 0;
         let mut last_horizontal_ix: Option<usize> = None;
         let mut last_vertical_ix: Option<usize> = None;
         let mut horizontal_inversions: usize = 0;
         let mut vertical_inversions: usize = 0;
 
-        for [p0, p1] in points.as_slice().windows(2) {
+        for point_window in points.as_slice().windows(2) {
+            let [p0, p1]: [_; 2] = point_window.try_into().ok().unwrap();
+
             let direction = {
                 let directions_to = p0.directions_to(p1);
                 assert_eq!(directions_to.len(), 1);
@@ -127,15 +127,4 @@ impl Polygon {
 pub struct LineSeg {
     p0: Point,
     p1: Point,
-}
-
-impl RectilinearPolygon {
-    pub fn count_inversions(&self) -> usize {
-        let mut num_horizontal_inversions = 0;
-        let mut num_vertical_inversion = 0;
-
-        for (ix, point) in self.points.iter().enumerate() {
-            if ix > 0 {}
-        }
-    }
 }
