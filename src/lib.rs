@@ -1,25 +1,34 @@
 mod bbox;
-pub mod shape;
+pub mod shapes;
 
-use crate::shape::Point;
+use crate::shapes::{Point, PointLike, RectDirection};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Polygon {
     pub points: Vec<Point>,
-    pub directions: Vec<RectDirections>,
+    pub directions: Vec<RectDirection>,
     pub horizontal_inversions: usize,
     pub vertical_inversions: usize,
 }
 
+pub struct VerticalWall {
+    // Indexes into a Polygon's points
+    pub points: Vec<usize>,
+}
+
+// impl PartialOrd for VerticalWall {
+
+// }
+
 impl Polygon {
-    pub fn find_bottom_left_most_point(&self) {}
+    pub fn find_bottom_most_left_most_point(&self) {}
 
     pub fn from_points(mut points: Vec<Point>) -> Polygon {
         assert!(points.len() > 3);
 
-        let mut directions = Vec::<RectDirections>::with_capacity(points.len() - 1);
+        let mut directions = Vec::<RectDirection>::with_capacity(points.len() - 1);
 
-        use RectDirections::*;
+        use RectDirection::*;
         let mut reverse_points = false;
         let mut last_horizontal_ix: Option<usize> = None;
         let mut last_vertical_ix: Option<usize> = None;
@@ -30,12 +39,12 @@ impl Polygon {
             let [p0, p1]: [_; 2] = point_window.try_into().ok().unwrap();
 
             let direction = {
-                let directions_to = p0.directions_to(p1);
+                let directions_to = p0.directions_to(&p1);
                 assert_eq!(directions_to.len(), 1);
                 directions_to[0]
             };
 
-            if directions.len() > 0 {
+            if !directions.is_empty() {
                 match direction {
                     Left | Right => {
                         if let Some(ix) = last_horizontal_ix {

@@ -47,7 +47,7 @@ impl UnvalidatedBoundingBox {
             ArchivedShape::Path(p) => {
                 let pts = p.as_poly();
 
-                for pt in pts.iter() {
+                for pt in pts.points.iter() {
                     self.min.x = pt.x.min(self.min.x);
                     self.min.y = pt.y.min(self.min.y);
                     self.max.x = pt.x.max(self.max.x);
@@ -124,7 +124,7 @@ impl BoundingBox {
         self.max.y = self.max.y.max(bbox.max.y);
     }
     #[must_use = "This used to mutate the BoundingBox it was called on, it now instead returns a new BoundingBox"]
-    pub fn shift(&self, p: &Point) -> Self {
+    pub fn shift(&self, p: Point) -> Self {
         Self {
             min: self.min.shift(p),
             max: self.max.shift(p),

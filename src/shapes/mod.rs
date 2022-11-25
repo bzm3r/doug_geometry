@@ -70,9 +70,9 @@ impl CalculateBoundingBox for ArchivedShape {
             Self::Path(p) => {
                 let mut bbox = UnvalidatedBoundingBox::invalid();
 
-                let pts = p.as_poly();
+                let p = p.as_poly();
 
-                for pt in pts.iter() {
+                for pt in p.points.iter() {
                     bbox.min.x = pt.x.min(bbox.min.x);
                     bbox.min.y = pt.y.min(bbox.min.y);
                     bbox.max.x = pt.x.max(bbox.max.x);
@@ -114,9 +114,9 @@ impl CalculateBoundingBox for Shape {
             Self::Path(p) => {
                 let mut bbox = UnvalidatedBoundingBox::invalid();
 
-                let pts = p.as_poly();
+                let p = p.as_poly();
 
-                for pt in pts.iter() {
+                for pt in p.points.iter() {
                     bbox.min.x = pt.x.min(bbox.min.x);
                     bbox.min.y = pt.y.min(bbox.min.y);
                     bbox.max.x = pt.x.max(bbox.max.x);

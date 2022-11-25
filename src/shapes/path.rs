@@ -1,4 +1,4 @@
-use crate::shape::{Point, Poly, RectDirection};
+use crate::shapes::{Point, PointLike, Poly, RectDirection};
 use rkyv::{Archive, Deserialize, Serialize};
 
 #[derive(
@@ -20,113 +20,80 @@ pub struct Path {
     pub layer: u8,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
-#[archive(compare(PartialEq))]
-#[archive_attr(derive(Debug))]
-pub struct UnvalidatedPath {
-    pub points: Vec<Point>,
-    pub width: u32,
-    pub layer: u8,
-}
-
-pub fn shift_pure_right(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_pure_right<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
-    forward_poly_points.push(Point {
-        x: p0.x,
-        y: p0.y - half_width,
-    });
-    backward_poly_points.push(Point {
-        x: p0.x,
-        y: p0.y + half_width,
-    });
+    forward_poly_points.push(P::new(p0.x(), p0.y() - half_width));
+    backward_poly_points.push(P::new(p0.x(), p0.y() + half_width));
 }
 
-pub fn shift_pure_left(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_pure_left<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
     shift_pure_right(backward_poly_points, forward_poly_points, p0, half_width)
 }
 
-pub fn shift_pure_up(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_pure_up<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
-    forward_poly_points.push(Point {
-        x: p0.x + half_width,
-        y: p0.y,
-    });
-    backward_poly_points.push(Point {
-        x: p0.x - half_width,
-        y: p0.y,
-    });
+    forward_poly_points.push(P::new(p0.x() + half_width, p0.y()));
+    backward_poly_points.push(P::new(p0.x() - half_width, p0.y()));
 }
 
-pub fn shift_pure_down(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_pure_down<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
     shift_pure_up(backward_poly_points, forward_poly_points, p0, half_width)
 }
 
-pub fn shift_right_up(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_right_up<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
     // println!("shift right up");
-    forward_poly_points.push(Point {
-        x: p0.x + half_width,
-        y: p0.y - half_width,
-    });
-    backward_poly_points.push(Point {
-        x: p0.x - half_width,
-        y: p0.y + half_width,
-    });
+    forward_poly_points.push(P::new(p0.x() + half_width, p0.y() - half_width));
+    backward_poly_points.push(P::new(p0.x() - half_width, p0.y() + half_width));
 }
 
-pub fn shift_left_down(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_left_down<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
     // println!("shift left down (calling shift right up)");
     shift_right_up(backward_poly_points, forward_poly_points, p0, half_width);
 }
 
-pub fn shift_right_down(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_right_down<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
     // println!("shift right down");
-    forward_poly_points.push(Point {
-        x: p0.x - half_width,
-        y: p0.y - half_width,
-    });
-    backward_poly_points.push(Point {
-        x: p0.x + half_width,
-        y: p0.y + half_width,
-    });
+    forward_poly_points.push(P::new(p0.x() - half_width, p0.y() - half_width));
+    backward_poly_points.push(P::new(p0.x() + half_width, p0.y() + half_width));
 }
 
-pub fn shift_left_up(
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
-    p0: Point,
+pub fn shift_left_up<P: PointLike>(
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
+    p0: P,
     half_width: i32,
 ) {
     // println!("shift left up (calling shift right down)");
@@ -134,93 +101,69 @@ pub fn shift_left_up(
 }
 
 /// A 2-point path that moves horizontally
-pub fn simple_horizontal_path_to_poly(points: &[Point], width: u32, layer: u8) -> Poly {
-    let half_width = width / 2 as i32;
+pub fn simple_horizontal_path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Poly {
+    let half_width = (width / 2) as i32;
 
     let points = vec![
-        Point {
-            x: points[0].x,
-            y: points[0].y - half_width,
-        },
-        Point {
-            x: points[1].x,
-            y: points[1].y - half_width,
-        },
-        Point {
-            x: points[1].x,
-            y: points[1].y + half_width,
-        },
-        Point {
-            x: points[0].x,
-            y: points[0].y + half_width,
-        },
+        Point::new(points[0].x(), points[0].y() - half_width),
+        Point::new(points[1].x(), points[1].y() - half_width),
+        Point::new(points[1].x(), points[1].y() + half_width),
+        Point::new(points[0].x(), points[0].y() + half_width),
     ];
 
     Poly { points, layer }
 }
 
 /// A 2-point path that moves vertically
-pub fn simple_vertical_path_to_poly(points: &[Point], width: u32, layer: u8) -> Poly {
-    let half_width = width / 2 as i32;
+pub fn simple_vertical_path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Poly {
+    let half_width = (width / 2) as i32;
 
     let points = vec![
-        Point {
-            x: points[0].x + half_width,
-            y: points[0].y,
-        },
-        Point {
-            x: points[1].x + half_width,
-            y: points[1].y,
-        },
-        Point {
-            x: points[1].x - half_width,
-            y: points[1].y,
-        },
-        Point {
-            x: points[0].x - half_width,
-            y: points[0].y,
-        },
+        Point::new(points[0].x() + half_width, points[0].y()),
+        Point::new(points[1].x() + half_width, points[1].y()),
+        Point::new(points[1].x() - half_width, points[1].y()),
+        Point::new(points[0].x() - half_width, points[0].y()),
     ];
 
     Poly { points, layer }
 }
 
-pub fn start_or_end_path_to_poly(
-    start_or_end_point: Point,
+pub fn start_or_end_path_to_poly<P: PointLike>(
+    start_or_end_point: P,
     start_or_end_direction: RectDirection,
     half_width: i32,
-    forward_poly_points: &mut Vec<Point>,
-    backward_poly_points: &mut Vec<Point>,
+    forward_poly_points: &mut Vec<P>,
+    backward_poly_points: &mut Vec<P>,
 ) {
     match start_or_end_direction {
         RectDirection::Right => shift_pure_right(
             forward_poly_points,
             backward_poly_points,
-            start_or_end_point.into(),
+            start_or_end_point,
             half_width,
         ),
         RectDirection::Left => shift_pure_left(
             forward_poly_points,
             backward_poly_points,
-            start_or_end_point.into(),
+            start_or_end_point,
             half_width,
         ),
         RectDirection::Up => shift_pure_up(
             forward_poly_points,
             backward_poly_points,
-            start_or_end_point.into(),
+            start_or_end_point,
             half_width,
         ),
         RectDirection::Down => shift_pure_down(
             forward_poly_points,
             backward_poly_points,
-            start_or_end_point.into(),
+            start_or_end_point,
             half_width,
         ),
     }
 }
 
-pub fn path_to_poly(points: &[Point], width: u32, layer: u8) -> Poly {
+pub fn path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Poly {
     let num_points = points.len();
 
     // TODO: remove this assert because all shape verification should happen prior to archiving
@@ -231,7 +174,7 @@ pub fn path_to_poly(points: &[Point], width: u32, layer: u8) -> Poly {
     );
 
     if num_points == 2 {
-        return if points[0].x == points[1].x {
+        return if points[0].x() == points[1].x() {
             simple_horizontal_path_to_poly(points, width, layer)
         } else {
             simple_vertical_path_to_poly(points, width, layer)
@@ -262,8 +205,8 @@ pub fn path_to_poly(points: &[Point], width: u32, layer: u8) -> Poly {
     let mut last_direction = start_direction;
 
     for ix in 1..(num_points - 1) {
-        let p0: Point = points[ix].into();
-        let p1: Point = points[ix + 1].into();
+        let p0 = points[ix];
+        let p1 = points[ix + 1];
         let next_move = p0.simple_directions_to(&p1);
         match (last_direction, next_move) {
             (RectDirection::Right, RectDirection::Right) => shift_pure_right(
@@ -339,6 +282,7 @@ pub fn path_to_poly(points: &[Point], width: u32, layer: u8) -> Poly {
     let points: Vec<Point> = forward_poly_points
         .into_iter()
         .chain(backward_poly_points.into_iter().rev())
+        .map(|p| p.into())
         .collect();
 
     Poly { points, layer }

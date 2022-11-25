@@ -1,6 +1,5 @@
-use crate::bbox::{BoundingBox, CalculateBoundingBox, UnvalidatedBoundingBox};
-use crate::shape::Point;
-use rkyv::{vec::ArchivedVec, Archive, Deserialize, Serialize};
+use crate::shapes::Point;
+use rkyv::{Archive, Deserialize, Serialize};
 
 #[derive(
     Debug,
