@@ -1,49 +1,7 @@
-use derive_more::{Add, Sub};
+mod bbox;
+pub mod shape;
 
-#[derive(Debug, Eq, PartialEq, Default, Clone, Copy, Add, Sub)]
-pub struct Point {
-    x: i32,
-    y: i32,
-}
-
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub enum RectDirections {
-    Left,
-    Right,
-    Up,
-    Down,
-}
-
-impl Point {
-    fn directions_to(&self, other: Point) -> Vec<RectDirections> {
-        let mut result = Vec::with_capacity(2);
-        use RectDirections::*;
-        if self.x > other.x {
-            result.push(Left)
-        } else if self.x < other.x {
-            result.push(Right)
-        }
-
-        if self.y > other.y {
-            result.push(Down)
-        } else if self.x < other.y {
-            result.push(Up)
-        }
-        result
-    }
-}
-
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub struct Rect {
-    pub p0: Point,
-    pub p1: Point,
-}
-
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub struct LayerRect {
-    pub rect: Rect,
-    pub layer: u8,
-}
+use crate::shape::Point;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Polygon {
