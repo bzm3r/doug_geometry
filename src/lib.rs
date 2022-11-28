@@ -13,76 +13,63 @@ pub struct PolyDecomposer {
 
 /// The type of corner in a rectilinear polygon
 ///
-/// It consists of an incoming direction, and an outgoing direction. One of these must be horizontal
-/// and the other vertical.
-///
-/// Use the [`new`](Corner::new) method to create it.
+/// It consists of an incoming direction, and an outgoing direction
 #[derive(Clone, Copy, Debug)]
-pub struct Corner {
-    /// Direction from the previous point in the polygon to this corner's point
-    incoming: RectDirection,
-    /// Direction from this corner's point to the next point in the polygon
-    outgoing: RectDirection,
-    /// Is the inner angle of this corner 90 degrees?
-    right_angled: bool,
+pub enum Corner {
+    // rectangle corners (90 degree inner angles)
+    DownRight,
+    RightUp,
+    UpLeft,
+    LeftDown,
+    // general rectilinear polygon corners (> 90 degree inner angles)
+    DownLeft,
+    RightDown,
+    UpRight,
+    LeftUp,
 }
 
 impl Corner {
-    /// Create a new corner from the given directions, if one is horizontal and the other is vertical.
-    ///
-    /// Otherwise, return `None`.
-    pub fn new(incoming: RectDirection, outgoing: RectDirection) -> Option<Corner> {
-        if (incoming.is_horizontal() && outgoing.is_vertical())
-            || (incoming.is_vertical() && outgoing.is_horizontal())
-        {
-            let right_angled = match (incoming, outgoing) {
-                (RectDirection::Down, RectDirection::Right)
-                | (RectDirection::Right, RectDirection::Up)
-                | (RectDirection::Up, RectDirection::Left)
-                | (RectDirection::Left, RectDirection::Down) => true,
-                _ => false,
-            };
-
-            Some(Corner {
-                incoming,
-                outgoing,
-                right_angled,
-            })
-        } else {
-            None
-        }
-    }
-
     pub fn horizontal_part(&self) -> RectDirection {
-        if self.incoming.is_horizontal() {
-            self.incoming
-        } else {
-            self.outgoing
+        match self {
+            Corner::UpLeft | Corner::LeftDown | Corner::DownLeft | Corner::LeftUp => {
+                RectDirection::Left
+            }
+            _ => RectDirection::Right,
         }
     }
 
     pub fn vertical_part(&self) -> RectDirection {
-        if self.incoming.is_vertical() {
-            self.incoming
-        } else {
-            self.outgoing
+        match self {
+            Corner::DownRight | Corner::LeftDown | Corner::DownLeft | Corner::RightDown => {
+                RectDirection::Down
+            }
+            _ => RectDirection::Up,
         }
     }
 
     pub fn right_angled(&self) -> bool {
-        self.right_angled
+        match self {
+            Corner::DownRight | Corner::RightUp | Corner::UpLeft | Corner::LeftDown => true,
+            _ => false,
+        }
     }
 
     pub fn incoming_part(&self) -> RectDirection {
-        self.incoming
+        match self {
+            Corner::DownRight | Corner::DownLeft => RectDirection::Down,
+            Corner::RightUp | Corner::RightDown => RectDirection::Right,
+            Corner::UpLeft | Corner::UpRight => RectDirection::Up,
+            Corner::LeftDown | Corner::LeftUp => RectDirection::Left,
+        }
     }
 
     pub fn outgoing_part(&self) -> RectDirection {
-        self.outgoing
-    }
-
-    pub fn incoming_outgoing(&self) -> (RectDirection, RectDirection) {
-        (self.incoming, self.outgoing)
+        match self {
+            Corner::RightDown | Corner::LeftDown => RectDirection::Down,
+            Corner::UpRight | Corner::DownRight => RectDirection::Right,
+            Corner::RightUp | Corner::LeftUp => RectDirection::Up,
+            Corner::UpLeft | Corner::DownLeft => RectDirection::Left,
+        }
     }
 }
 
@@ -103,6 +90,7 @@ pub struct Wall {
     attitude: WallAttitude,
     orientation: WallOrientation,
     points: Vec<Point>,
+    corners: Vec<Corner>,
     /// Index of the walls which match this wall
     ///
     /// If this wall's `attitude` is [`Forward`](WallAttitude), it matches with those
@@ -119,6 +107,7 @@ impl Wall {
             attitude: WallAttitude::Forward,
             orientation: WallOrientation::Horizontal,
             points: Vec::with_capacity(capacity),
+            corners: Vec::with_capacity(capacity),
             matches: vec![],
         }
     }
@@ -128,6 +117,7 @@ impl Wall {
             attitude: WallAttitude::Reverse,
             orientation: WallOrientation::Horizontal,
             points: Vec::with_capacity(capacity),
+            corners: Vec::with_capacity(capacity),
             matches: vec![],
         }
     }
@@ -137,6 +127,7 @@ impl Wall {
             attitude: WallAttitude::Forward,
             orientation: WallOrientation::Vertical,
             points: Vec::with_capacity(capacity),
+            corners: Vec::with_capacity(capacity),
             matches: vec![],
         }
     }
@@ -146,6 +137,7 @@ impl Wall {
             attitude: WallAttitude::Reverse,
             orientation: WallOrientation::Vertical,
             points: Vec::with_capacity(capacity),
+            corners: Vec::with_capacity(capacity),
             matches: vec![],
         }
     }
@@ -159,6 +151,7 @@ impl Wall {
             (WallOrientation::Horizontal, WallAttitude::Forward) => {
                 if corner.horizontal_part() == RectDirection::Right {
                     self.points.push(point);
+                    self.corners.push(corner);
                 } else {
                     panic!("Cannot push a {:?} into a Forward horizontal wall", corner);
                 }
@@ -166,6 +159,7 @@ impl Wall {
             (WallOrientation::Horizontal, WallAttitude::Reverse) => {
                 if corner.horizontal_part() == RectDirection::Left {
                     self.points.push(point);
+                    self.corners.push(corner);
                 } else {
                     panic!("Cannot push a {:?} into a Reverse horizontal wall", corner);
                 }
@@ -173,6 +167,7 @@ impl Wall {
             (WallOrientation::Vertical, WallAttitude::Forward) => {
                 if corner.vertical_part() == RectDirection::Up {
                     self.points.push(point);
+                    self.corners.push(corner);
                 } else {
                     panic!("Cannot push a {:?} into a Forward vertical wall", corner);
                 }
@@ -180,6 +175,7 @@ impl Wall {
             (WallOrientation::Vertical, WallAttitude::Reverse) => {
                 if corner.vertical_part() == RectDirection::Down {
                     self.points.push(point);
+                    self.corners.push(corner);
                 } else {
                     panic!("Cannot push a {:?} into a Reverse vertical wall", corner);
                 }
@@ -233,6 +229,45 @@ impl Wall {
                         && other.first().y <= self.last().y
                 }
             }
+    }
+
+    fn project(&self, point: &Point) -> Option<Point> {
+        match self.orientation {
+            WallOrientation::Horizontal => {
+                let (leftmost, rightmost) = match self.attitude {
+                    WallAttitude::Forward => (self.first(), self.last()),
+                    WallAttitude::Reverse => (self.last(), self.first()),
+                };
+
+                if point.x() <= leftmost.x() && point.x() <= rightmost.x() {
+                    for wall_point_pair in self.points.as_slice().windows(2) {
+                        let [p0, p1]: [_; 2] = wall_point_pair.try_into().ok().unwrap();
+
+                        if let Some(projected) = point.project_horizontal(&p0, &p1) {
+                            return Some(projected);
+                        }
+                    }
+                }
+            }
+            WallOrientation::Vertical => {
+                let (bottommost, topmost) = match self.attitude {
+                    WallAttitude::Forward => (self.first(), self.last()),
+                    WallAttitude::Reverse => (self.last(), self.first()),
+                };
+
+                if point.y() <= bottommost.y() && point.y() <= topmost.y() {
+                    for wall_point_pair in self.points.as_slice().windows(2) {
+                        let [p0, p1]: [_; 2] = wall_point_pair.try_into().ok().unwrap();
+
+                        if let Some(projected) = point.project_vertical(&p0, &p1) {
+                            return Some(projected);
+                        }
+                    }
+                }
+            }
+        }
+
+        None
     }
 }
 
@@ -308,111 +343,91 @@ impl WallsBuilder {
         }
     }
 
-    pub fn push(&mut self, point: Point, corner: Corner) {
-        match corner.incoming_outgoing() {
-            // Starting point for horizontal forward walls
-            (RectDirection::Down, RectDirection::Right) => {
-                if self.current_horizontal.is_forward() {
-                    self.current_horizontal.push(point, corner);
-                } else {
-                    self.walls
-                        .horizontal_walls
-                        .push(self.current_horizontal.clone());
-                    self.current_horizontal =
-                        Wall::new_horizontal_forward(self.default_wall_capacity);
-                }
-
-                if self.current_vertical.is_reverse() {
-                    self.current_vertical.push(point, corner);
-                }
-            }
-            // Starting point for horizontal reverse walls
-            (RectDirection::Up, RectDirection::Left) => {
-                if self.current_horizontal.is_reverse() {
-                    self.current_horizontal.push(point, corner);
-                } else {
-                    self.walls
-                        .horizontal_walls
-                        .push(self.current_horizontal.clone());
-                    self.current_horizontal =
-                        Wall::new_horizontal_reverse(self.default_wall_capacity);
-                }
-
-                if self.current_vertical.is_forward() {
-                    self.current_vertical.push(point, corner);
-                }
-            }
-            // Starting point for vertical forward walls
-            (RectDirection::Right, RectDirection::Up) => {
-                if self.current_vertical.is_forward() {
-                    self.current_vertical.push(point, corner);
-                } else {
-                    self.walls
-                        .vertical_walls
-                        .push(self.current_vertical.clone());
-                    self.current_vertical =
-                        Wall::new_horizontal_forward(self.default_wall_capacity);
-                }
-
-                if self.current_horizontal.is_forward() {
-                    self.current_horizontal.push(point, corner);
-                }
-            }
-            // Starting point for vertical reverse walls
-            (RectDirection::Left, RectDirection::Down) => {
-                if self.current_vertical.is_reverse() {
-                    self.current_vertical.push(point, corner);
-                } else {
-                    self.walls
-                        .vertical_walls
-                        .push(self.current_vertical.clone());
-                    self.current_vertical =
-                        Wall::new_horizontal_reverse(self.default_wall_capacity);
-                }
-
-                if self.current_horizontal.is_reverse() {
-                    self.current_horizontal.push(point, corner);
-                }
-            }
-            (RectDirection::Up, RectDirection::Right) => {
-                if self.current_vertical.is_forward() {
-                    self.current_vertical.push(point, corner);
-                }
-
-                if self.current_horizontal.is_forward() {
-                    self.current_horizontal.push(point, corner);
-                }
-            }
-            (RectDirection::Down, RectDirection::Left) => {
-                if self.current_vertical.is_reverse() {
-                    self.current_vertical.push(point, corner)
-                }
-
-                if self.current_horizontal.is_reverse() {
-                    self.current_vertical.push(point, corner)
-                }
-            }
-            (RectDirection::Left, RectDirection::Up) => {
-                if self.current_vertical.is_forward() {
-                    self.current_vertical.push(point, corner)
-                }
-
-                if self.current_horizontal.is_reverse() {
-                    self.current_vertical.push(point, corner)
-                }
-            }
-            (RectDirection::Right, RectDirection::Down) => {
-                if self.current_vertical.is_reverse() {
-                    self.current_vertical.push(point, corner)
-                }
-
-                if self.current_horizontal.is_forward() {
-                    self.current_vertical.push(point, corner)
-                }
-            }
-            // Other combinations (e.g. Left, Left, or Up, Down) should not be possible
-            (_, _) => unreachable!(),
+    fn push_horizontal_forward(&mut self, point: Point, corner: Corner) {
+        if self.current_horizontal.is_reverse() {
+            self.walls
+                .horizontal_walls
+                .push(self.current_horizontal.clone());
+            self.current_horizontal = Wall::new_horizontal_forward(self.default_wall_capacity);
         }
+        self.current_horizontal.push(point, corner);
+    }
+
+    fn push_horizontal_reverse(&mut self, point: Point, corner: Corner) {
+        if self.current_horizontal.is_forward() {
+            self.walls
+                .horizontal_walls
+                .push(self.current_horizontal.clone());
+            self.current_horizontal = Wall::new_horizontal_reverse(self.default_wall_capacity);
+        }
+        self.current_horizontal.push(point, corner);
+    }
+
+    fn push_vertical_forward(&mut self, point: Point, corner: Corner) {
+        if self.current_vertical.is_reverse() {
+            self.walls
+                .vertical_walls
+                .push(self.current_vertical.clone());
+            self.current_vertical = Wall::new_vertical_forward(self.default_wall_capacity);
+        }
+        self.current_vertical.push(point, corner);
+    }
+
+    fn push_vertical_reverse(&mut self, point: Point, corner: Corner) {
+        if self.current_vertical.is_forward() {
+            self.walls
+                .vertical_walls
+                .push(self.current_vertical.clone());
+            self.current_vertical = Wall::new_vertical_reverse(self.default_wall_capacity);
+        }
+        self.current_vertical.push(point, corner);
+    }
+0
+    pub fn maybe_push_horizontal_forward(&mut self, point: Point, corner: Corner) {
+        if self.current_horizontal.is_forward() {
+            self.current_horizontal.push(point, corner);
+        }
+    }
+
+    pub fn maybe_push_horizontal_reverse(&mut self, point: Point, corner: Corner) {
+        if self.current_horizontal.is_reverse() {
+            self.current_horizontal.push(point, corner);
+        }
+    }
+
+    pub fn maybe_push_vertical_forward(&mut self, point: Point, corner: Corner) {
+        if self.current_vertical.is_forward() {
+            self.current_vertical.push(point, corner);
+        }
+    }
+
+    pub fn maybe_push_vertical_reverse(&mut self, point: Point, corner: Corner) {
+        if self.current_vertical.is_reverse() {
+            self.current_vertical.push(point, corner);
+        }
+    }
+
+    pub fn push(&mut self, point: Point, corner: Corner) {
+        match corner.outgoing_part() {
+            RectDirection::Down => self.push_vertical_reverse(point, corner),
+            RectDirection::Left => self.push_horizontal_reverse(point, corner),
+            RectDirection::Right => self.push_horizontal_forward(point, corner),
+            RectDirection::Up => self.push_vertical_forward(point, corner),
+        };
+
+        match corner.incoming_part() {
+            RectDirection::Down => self.maybe_push_vertical_reverse(point, corner),
+            RectDirection::Left => self.maybe_push_horizontal_reverse(point, corner),
+            RectDirection::Right => self.maybe_push_horizontal_forward(point, corner),
+            RectDirection::Up => self.maybe_push_vertical_forward(point, corner),
+        };
+    }
+
+    pub fn finish(self) -> Walls {
+        assert_eq!(self.current_horizontal.points.len(), 0);
+        assert_eq!(self.current_vertical.points.len(), 0);
+
+        self.walls
     }
 }
 
@@ -472,12 +487,7 @@ impl PolyDecomposer {
             }
         }
 
-        PolyDecomposer {
-            points,
-            directions,
-            horizontal_inversions,
-            vertical_inversions,
-        }
+        PolyDecomposer { points, directions }
     }
 }
 
