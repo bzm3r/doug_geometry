@@ -24,6 +24,7 @@ impl UnvalidatedBoundingBox {
             },
         }
     }
+
     pub fn update(&mut self, shape: &ArchivedShape) {
         match shape {
             ArchivedShape::Rect(r) => {
