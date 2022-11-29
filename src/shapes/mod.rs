@@ -36,7 +36,7 @@ pub struct Shapes {
 #[archive_attr(derive(Debug))]
 pub enum Shape {
     Rect(Rect),
-    Poly(Poly),
+    Poly(Polygon),
     Path(Path),
 }
 

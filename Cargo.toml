@@ -9,3 +9,4 @@ edition = "2021"
 derive_more = "0.99.17"
 rkyv = "0.7.39"
 serde = { version = "1.0.147", features = ["derive"] }
+vlsir = "2"

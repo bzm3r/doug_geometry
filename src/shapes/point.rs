@@ -35,16 +35,16 @@ impl Point {
 }
 
 impl PointLike for Point {
-    fn new(x: i32, y: i32) -> Self {
-        Point { x, y }
-    }
-
     fn x(&self) -> i32 {
         self.x
     }
 
     fn y(&self) -> i32 {
         self.y
+    }
+
+    fn new(x: i32, y: i32) -> Self {
+        Point { x, y }
     }
 }
 
@@ -55,16 +55,16 @@ impl From<ArchivedPoint> for Point {
 }
 
 impl PointLike for ArchivedPoint {
-    fn new(x: i32, y: i32) -> Self {
-        ArchivedPoint { x, y }
-    }
-
     fn x(&self) -> i32 {
         self.x
     }
 
     fn y(&self) -> i32 {
         self.y
+    }
+
+    fn new(x: i32, y: i32) -> Self {
+        ArchivedPoint { x, y }
     }
 }
 

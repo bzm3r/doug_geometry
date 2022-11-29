@@ -1,4 +1,4 @@
-use crate::shapes::{Point, PointLike, Poly, RectDirection};
+use crate::shapes::{Point, PointLike, Polygon, RectDirection};
 use rkyv::{Archive, Deserialize, Serialize};
 
 #[derive(
@@ -101,7 +101,7 @@ pub fn shift_left_up<P: PointLike>(
 }
 
 /// A 2-point path that moves horizontally
-pub fn simple_horizontal_path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Poly {
+pub fn simple_horizontal_path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Polygon {
     let half_width = (width / 2) as i32;
 
     let points = vec![
@@ -111,11 +111,11 @@ pub fn simple_horizontal_path_to_poly<P: PointLike>(points: &[P], width: u32, la
         Point::new(points[0].x(), points[0].y() + half_width),
     ];
 
-    Poly { points, layer }
+    Polygon { points, layer }
 }
 
 /// A 2-point path that moves vertically
-pub fn simple_vertical_path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Poly {
+pub fn simple_vertical_path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Polygon {
     let half_width = (width / 2) as i32;
 
     let points = vec![
@@ -125,7 +125,7 @@ pub fn simple_vertical_path_to_poly<P: PointLike>(points: &[P], width: u32, laye
         Point::new(points[0].x() - half_width, points[0].y()),
     ];
 
-    Poly { points, layer }
+    Polygon { points, layer }
 }
 
 pub fn start_or_end_path_to_poly<P: PointLike>(
@@ -163,7 +163,7 @@ pub fn start_or_end_path_to_poly<P: PointLike>(
     }
 }
 
-pub fn path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Poly {
+pub fn path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Polygon {
     let num_points = points.len();
 
     // TODO: remove this assert because all shape verification should happen prior to archiving
@@ -285,17 +285,17 @@ pub fn path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Poly {
         .map(|p| p.into())
         .collect();
 
-    Poly { points, layer }
+    Polygon { points, layer }
 }
 
 impl Path {
-    pub fn as_poly(&self) -> Poly {
+    pub fn as_poly(&self) -> Polygon {
         path_to_poly(&self.points, self.width, self.layer)
     }
 }
 
 impl ArchivedPath {
-    pub fn as_poly(&self) -> Poly {
+    pub fn as_poly(&self) -> Polygon {
         path_to_poly(&self.points, self.width, self.layer)
     }
 }
