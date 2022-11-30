@@ -90,8 +90,8 @@ pub struct RectCorner<P: PointLike> {
 }
 
 impl<P> RectCorner<P>
-    where
-        P: PointLike,
+where
+    P: PointLike,
 {
     pub fn new(incoming: P, outgoing: P, center: P) -> Self {
         Self {
@@ -113,20 +113,32 @@ impl<P> RectCorner<P>
             corner_type: other.corner_type,
         }
     }
-    
+
     pub fn corner_type(&self) -> CornerType {
         self.corner_type
     }
-    
+
     pub fn point(&self) -> P {
         self.point
     }
-    
+
     pub fn incoming(&self) -> P {
         self.incoming
     }
-    
+
     pub fn outgoing(&self) -> P {
         self.outgoing
+    }
+
+    pub fn project_onto_vertical_outgoing<Q: PointLike>(&self, p: &Q) -> Option<P> {
+        let (top, bottom) = match self.corner_type.outgoing_part() {
+            RectDirection::Down => (self.point.y(), self.outgoing.y()),
+            RectDirection::Up => (self.outgoing.y(), self.point.y()),
+            RectDirection::Left | RectDirection::Right => {
+                return None;
+            }
+        };
+
+        (bottom <= p.y() && p.y() <= top).then_some(P::new(self.point.x(), p.y()))
     }
 }

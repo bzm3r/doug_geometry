@@ -100,30 +100,6 @@ pub trait PointLike: Into<Point> + Copy + Clone {
         assert_eq!(moves_to.len(), 1);
         moves_to[0]
     }
-
-    fn project_horizontal<Q: PointLike, R: PointLike>(&self, p0: &Q, p1: &R) -> Option<Self> {
-        if p0.x() == self.x() {
-            Some(Self::from_other(p0))
-        } else if p1.x() == self.x() {
-            Some(Self::from_other(p1))
-        } else if p0.x() < self.x() && self.x() < p1.x() {
-            Some(Self::new(self.x(), p0.y()))
-        } else {
-            None
-        }
-    }
-
-    fn project_vertical<Q: PointLike, R: PointLike>(&self, p0: &Q, p1: &R) -> Option<Self> {
-        if p0.y() == self.y() {
-            Some(Self::from_other(p0))
-        } else if p1.y() == self.y() {
-            Some(Self::from_other(p1))
-        } else if p0.y() < self.y() && self.y() < p1.y() {
-            Some(Self::new(p0.x(), self.y()))
-        } else {
-            None
-        }
-    }
 }
 
 #[inline]

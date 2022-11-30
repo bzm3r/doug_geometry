@@ -24,6 +24,22 @@ where
     matches: Vec<usize>,
 }
 
+pub struct ProjectionResult<P: PointLike> {
+    /// Index of the corner (in a wall) whose outgoing segment contains the projected point
+    pub corner_ix: usize,
+    /// The projected point
+    pub projected: P,
+}
+
+impl<P: PointLike> ProjectionResult<P> {
+    pub fn new(corner_ix: usize, projected: P) -> Self {
+        Self {
+            corner_ix,
+            projected,
+        }
+    }
+}
+
 impl<P> Wall<P>
 where
     P: PointLike,
@@ -118,17 +134,14 @@ where
             && other.first().point().y() <= self.last().point().y()
     }
 
-    pub fn project<Q: PointLike>(&self, point: &Q) -> Option<(P, RectCorner<P>)> {
+    pub fn project_onto_wall<Q: PointLike>(&self, point: &Q) -> Option<ProjectionResult<P>> {
         let bottom_most = self.bottom_most();
         let top_most = self.top_most();
 
         if point.y() <= bottom_most.point().y() && point.y() <= top_most.point().y() {
-            for rect_corner in self.rect_corners.iter() {
-                let p0 = rect_corner.point();
-                let p1 = rect_corner.outgoing();
-
-                if let Some(projected) = point.project_vertical(&p0, &p1) {
-                    return Some((P::from_other(&projected), *rect_corner));
+            for (ix, rect_corner) in self.rect_corners.iter().enumerate() {
+                if let Some(projected) = rect_corner.project_onto_vertical_outgoing(point) {
+                    return Some(ProjectionResult::new(ix, projected));
                 }
             }
         }
