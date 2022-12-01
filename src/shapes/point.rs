@@ -68,7 +68,7 @@ impl PointLike for ArchivedPoint {
     }
 }
 
-pub trait PointLike: Into<Point> + Copy + Clone {
+pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq {
     fn x(&self) -> i32;
     fn y(&self) -> i32;
     fn new(x: i32, y: i32) -> Self;

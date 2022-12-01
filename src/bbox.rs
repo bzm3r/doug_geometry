@@ -80,8 +80,8 @@ impl UnvalidatedBoundingBox {
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(Debug))]
 pub struct BoundingBox {
-    min: Point,
-    max: Point,
+    pub min: Point,
+    pub max: Point,
 }
 
 impl BoundingBox {

@@ -3,7 +3,7 @@ use crate::shapes::{PointLike, RectDirection};
 /// The type of corner in a rectilinear polygon
 ///
 /// It consists of an incoming direction, and an outgoing direction
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CornerType {
     // rectangle corners (90 degree inner angles)
     DownRight,
@@ -81,7 +81,7 @@ impl CornerType {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RectCorner<P: PointLike> {
     incoming: P,
     outgoing: P,
@@ -130,7 +130,7 @@ where
         self.outgoing
     }
 
-    pub fn project_onto_vertical_outgoing<Q: PointLike>(&self, p: &Q) -> Option<P> {
+    pub fn project_onto_vertical_outgoing<Q: PointLike>(&self, p: Q) -> Option<P> {
         let (top, bottom) = match self.corner_type.outgoing_part() {
             RectDirection::Down => (self.point.y(), self.outgoing.y()),
             RectDirection::Up => (self.outgoing.y(), self.point.y()),

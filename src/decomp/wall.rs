@@ -1,7 +1,8 @@
 use crate::decomp::RectCorner;
 use crate::shapes::{PointLike, RectDirection};
+use std::cmp::Ordering;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WallAttitude {
     Forward,
     Reverse,
@@ -134,11 +135,8 @@ where
             && other.first().point().y() <= self.last().point().y()
     }
 
-    pub fn project_onto_wall<Q: PointLike>(&self, point: &Q) -> Option<ProjectionResult<P>> {
-        let bottom_most = self.bottom_most();
-        let top_most = self.top_most();
-
-        if point.y() <= bottom_most.point().y() && point.y() <= top_most.point().y() {
+    pub fn project_onto_wall<Q: PointLike>(&self, point: Q) -> Option<ProjectionResult<P>> {
+        if self.interacts_with(point) {
             for (ix, rect_corner) in self.rect_corners.iter().enumerate() {
                 if let Some(projected) = rect_corner.project_onto_vertical_outgoing(point) {
                     return Some(ProjectionResult::new(ix, projected));
@@ -151,5 +149,56 @@ where
 
     pub fn attitude(&self) -> WallAttitude {
         self.attitude
+    }
+
+    pub fn interacts_with<Q: PointLike>(&self, point: Q) -> bool {
+        self.bottom_most().point().y() <= point.y() && point.y() <= self.top_most().point().y()
+    }
+
+    pub fn left_of_wall<Q: PointLike>(&self, other: &Wall<Q>) -> Option<bool> {
+        if let Some(projection_result) = self.project_onto_wall(other.top_most().point()) {
+            Some(projection_result.projected.x() < other.top_most().point().x())
+        } else if let Some(projection_result) = self.project_onto_wall(other.bottom_most().point())
+        {
+            Some(projection_result.projected.x() < other.bottom_most().point().x())
+        } else {
+            None
+        }
+    }
+}
+
+impl<P: PointLike> PartialEq for Wall<P> {
+    fn eq(&self, other: &Self) -> bool {
+        if self.len() == other.len() && self.attitude() == other.attitude() {
+            !self
+                .rect_corners
+                .iter()
+                .zip(other.rect_corners.iter())
+                .find(|(this_corner, other_corner)| this_corner != other_corner)
+                .is_some()
+        } else {
+            false
+        }
+    }
+}
+
+impl<P: PointLike> PartialOrd for Wall<P> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if let Some(projection_result) = self.project_onto_wall(other.top_most().point()) {
+            match projection_result.projected.x().cmp(&other.top_most().point().x()) {
+                Ordering::Less => Some(Ordering::Less),
+                Ordering::Equal => None,
+                Ordering::Greater => Some(Ordering::Greater),
+            }
+        } else if let Some(projection_result) = self.project_onto_wall(other.bottom_most().point())
+        {
+            match projection_result.projected.x().cmp(&other.bottom_most().point().x()) {
+                Ordering::Less => Some(Ordering::Less),
+                Ordering::Equal => None,
+                Ordering::Greater => Some(Ordering::Greater),
+            }
+        } else {
+            None
+        }
     }
 }
