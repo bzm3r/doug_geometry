@@ -1,12 +1,49 @@
 use crate::decomp::{RectCorner, Wall};
 use crate::shapes::{PointLike, PolyRect, Polygon, RectDirection};
+use std::cell::RefCell;
+use std::cmp::Ordering;
+use std::collections::BTreeSet;
+use std::rc::Rc;
 
-pub struct WallModel<P>
-where
-    P: PointLike,
-{
+pub struct WallIndex<P: PointLike> {
+    walls: Rc<RefCell<Vec<Wall<P>>>>,
+    ix: usize,
+}
+
+impl<P: PointLike> WallIndex<P> {
+    fn get(&self) -> &Wall<P> {
+        &self.walls.borrow()[self.ix]
+    }
+}
+
+impl<P: PointLike> PartialEq for WallIndex<P> {
+    fn eq(&self, other: &Self) -> bool {
+        self.ix == other.ix
+    }
+}
+
+impl<P: PointLike> Eq for WallIndex<P> {}
+
+impl<P: PointLike> PartialOrd for WallIndex<P> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.get().partial_cmp(other.get())
+    }
+}
+
+impl<P: PointLike> Ord for WallIndex<P> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if let Some(ordering) = self.partial_cmp(other) {
+            ordering
+        } else {
+            self.ix.cmp(&other.ix)
+        }
+    }
+}
+
+pub struct WallModel<P: PointLike> {
     layer: u8,
-    walls: Vec<Wall<P>>,
+    walls: Rc<RefCell<Vec<Wall<P>>>>,
+    order: BTreeSet<WallIndex<P>>,
 }
 
 impl<P> WallModel<P>
@@ -15,13 +52,20 @@ where
 {
     pub fn new(layer: u8) -> Self {
         WallModel {
-            walls: Vec::new(),
+            walls: Default::default(),
+            order: Default::default(),
             layer,
         }
     }
 
     pub fn push(&mut self, mut wall: Wall<P>) {
-        self.walls.push(wall);
+        let ix = self.walls.borrow().len();
+        self.walls.borrow_mut().push(wall);
+        // This does a wall left of/right of comparison, so is potentially expensive?
+        self.order.insert(WallIndex {
+            walls: self.walls.clone(),
+            ix,
+        });
     }
 
     pub fn decompose(&self) -> PolyRect {

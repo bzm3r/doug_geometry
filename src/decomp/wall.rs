@@ -15,14 +15,6 @@ where
 {
     attitude: WallAttitude,
     rect_corners: Vec<RectCorner<P>>,
-    /// Index of the walls which match this wall
-    ///
-    /// If this wall's `attitude` is [`Forward`](WallAttitude), it matches with those
-    /// [`Reverse`](WallAttitude) walls which it shadows.
-    ///
-    /// If this wall's `attitude` is [`Reverse`](WallAttitude), it matches with those
-    /// [`Forward`](WallAttitude) walls which shadow it.
-    matches: Vec<usize>,
 }
 
 pub struct ProjectionResult<P: PointLike> {
@@ -49,7 +41,6 @@ where
         Wall {
             attitude: WallAttitude::Forward,
             rect_corners: Vec::with_capacity(capacity),
-            matches: vec![],
         }
     }
 
@@ -57,7 +48,6 @@ where
         Wall {
             attitude: WallAttitude::Reverse,
             rect_corners: Vec::with_capacity(capacity),
-            matches: vec![],
         }
     }
 
@@ -185,14 +175,22 @@ impl<P: PointLike> PartialEq for Wall<P> {
 impl<P: PointLike> PartialOrd for Wall<P> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if let Some(projection_result) = self.project_onto_wall(other.top_most().point()) {
-            match projection_result.projected.x().cmp(&other.top_most().point().x()) {
+            match projection_result
+                .projected
+                .x()
+                .cmp(&other.top_most().point().x())
+            {
                 Ordering::Less => Some(Ordering::Less),
                 Ordering::Equal => None,
                 Ordering::Greater => Some(Ordering::Greater),
             }
         } else if let Some(projection_result) = self.project_onto_wall(other.bottom_most().point())
         {
-            match projection_result.projected.x().cmp(&other.bottom_most().point().x()) {
+            match projection_result
+                .projected
+                .x()
+                .cmp(&other.bottom_most().point().x())
+            {
                 Ordering::Less => Some(Ordering::Less),
                 Ordering::Equal => None,
                 Ordering::Greater => Some(Ordering::Greater),
