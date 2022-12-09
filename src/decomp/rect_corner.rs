@@ -142,3 +142,107 @@ where
         (bottom <= p.y() && p.y() <= top).then_some(P::new(self.point.x(), p.y()))
     }
 }
+
+pub struct Corners<P: PointLike> {
+    vertical_inversions: usize,
+    horizontal_inversions: usize,
+    left_most_bottom_most: usize,
+    bottom_most_right_most: usize,
+    corners: Vec<RectCorner<P>>,
+}
+
+impl<P: PointLike> Corners<P> {
+    pub fn left_most_bottom_most(corners: &[RectCorner<P>]) -> usize {
+        let left_most_coordinate = corners
+            .iter()
+            .map(|corner| corner.point().x())
+            .min()
+            .unwrap();
+        corners
+            .iter()
+            .enumerate()
+            .filter_map(|(ix, corner)| {
+                (corner.point().x() == left_most_coordinate).then_some((ix, corner))
+            })
+            .min_by_key(|(ix, corner)| corner.point().y())
+            .map(|(ix, corner)| ix)
+            .unwrap()
+    }
+
+    pub fn bottom_most_right_most(corners: &[RectCorner<P>]) -> usize {
+        let bottom_most_coordinate = corners
+            .iter()
+            .map(|corner| corner.point().y())
+            .min()
+            .unwrap();
+        corners
+            .iter()
+            .enumerate()
+            .filter_map(|(ix, corner)| {
+                (corner.point().y() == bottom_most_coordinate).then_some((ix, corner))
+            })
+            .max_by_key(|(ix, corner)| corner.point().x())
+            .map(|(ix, corner)| ix)
+            .unwrap()
+    }
+
+    pub fn count_horizontal_inversions(
+        left_most_bottom_most_ix: usize,
+        corners: &[RectCorner<P>],
+    ) -> usize {
+        let mut horizontal_inversions = 0;
+        let mut last_horizontal = corners[left_most_bottom_most_ix]
+            .corner_type()
+            .horizontal_part();
+        let n_corners = corners.len();
+        for i in 1..n_corners {
+            let this_horizontal = corners[(left_most_bottom_most_ix + i) % n_corners]
+                .corner_type()
+                .horizontal_part();
+
+            if this_horizontal != last_horizontal {
+                last_horizontal = this_horizontal;
+                horizontal_inversions += 1;
+            }
+        }
+        horizontal_inversions
+    }
+
+    pub fn count_vertical_inversions(
+        bottom_most_right_most_ix: usize,
+        corners: &[RectCorner<P>],
+    ) -> usize {
+        let mut vertical_inversions = 0;
+        let mut last_vertical = corners[bottom_most_right_most_ix]
+            .corner_type()
+            .vertical_part();
+        let n_corners = corners.len();
+        for i in 1..n_corners {
+            let this_vertical = corners[(bottom_most_right_most_ix + i) % n_corners]
+                .corner_type()
+                .vertical_part();
+
+            if this_vertical != last_vertical {
+                last_vertical = this_vertical;
+                vertical_inversions += 1;
+            }
+        }
+        vertical_inversions
+    }
+
+    pub fn new(corners: Vec<RectCorner<P>>) -> Self {
+        let left_most_bottom_most = Self::left_most_bottom_most(&corners);
+        let bottom_most_right_most = Self::bottom_most_right_most(&corners);
+        let horizontal_inversions =
+            Self::count_horizontal_inversions(left_most_bottom_most, &corners);
+        let vertical_inversions = Self::count_vertical_inversions(bottom_most_right_most, &corners);
+
+        Self {
+            vertical_inversions,
+            horizontal_inversions,
+            left_most_bottom_most,
+            bottom_most_right_most,
+            corners,
+        }
+    }
+}

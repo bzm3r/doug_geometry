@@ -13,6 +13,8 @@ pub struct Wall<P>
 where
     P: PointLike,
 {
+    /// The index of the wall
+    generation_index: usize,
     attitude: WallAttitude,
     rect_corners: Vec<RectCorner<P>>,
 }
@@ -37,15 +39,17 @@ impl<P> Wall<P>
 where
     P: PointLike,
 {
-    pub fn new_forward(capacity: usize) -> Self {
+    pub fn new_forward(generation_index: usize, capacity: usize) -> Self {
         Wall {
+            generation_index,
             attitude: WallAttitude::Forward,
             rect_corners: Vec::with_capacity(capacity),
         }
     }
 
-    pub fn new_reverse(capacity: usize) -> Self {
+    pub fn new_reverse(generation_index: usize, capacity: usize) -> Self {
         Wall {
+            generation_index,
             attitude: WallAttitude::Reverse,
             rect_corners: Vec::with_capacity(capacity),
         }
@@ -159,16 +163,7 @@ where
 
 impl<P: PointLike> PartialEq for Wall<P> {
     fn eq(&self, other: &Self) -> bool {
-        if self.len() == other.len() && self.attitude() == other.attitude() {
-            !self
-                .rect_corners
-                .iter()
-                .zip(other.rect_corners.iter())
-                .find(|(this_corner, other_corner)| this_corner != other_corner)
-                .is_some()
-        } else {
-            false
-        }
+        self.generation_index == other.generation_index
     }
 }
 
@@ -197,6 +192,18 @@ impl<P: PointLike> PartialOrd for Wall<P> {
             }
         } else {
             None
+        }
+    }
+}
+
+impl<P: PointLike> Eq for Wall<P> {}
+
+impl<P: PointLike> Ord for Wall<P> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if let Some(ordering) = self.partial_cmp(other) {
+            ordering
+        } else {
+            self.generation_index.cmp(&other.generation_index)
         }
     }
 }

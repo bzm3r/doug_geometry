@@ -3,12 +3,12 @@ use rkyv::{vec::ArchivedVec, Archive, Deserialize, Serialize};
 
 mod path;
 mod point;
-mod poly;
+mod polygon;
 mod rect;
 
 pub use path::*;
 pub use point::*;
-pub use poly::*;
+pub use polygon::*;
 pub use rect::*;
 
 #[derive(
