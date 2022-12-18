@@ -2,6 +2,8 @@ use crate::shapes::RectDirection;
 use derive_more::{Add, Sub};
 use rkyv::{Archive, Deserialize, Serialize};
 
+pub use vlsir::raw::Point as RawPoint;
+
 #[derive(
     Debug,
     Eq,
@@ -54,6 +56,14 @@ impl From<ArchivedPoint> for Point {
     }
 }
 
+impl PartialEq<Self> for ArchivedPoint {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+
+impl Eq for ArchivedPoint {}
+
 impl PointLike for ArchivedPoint {
     fn x(&self) -> i32 {
         self.x
@@ -75,6 +85,13 @@ pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq {
 
     fn from_other<Q: PointLike>(other: &Q) -> Self {
         Self::new(other.x(), other.y())
+    }
+
+    fn from_raw(raw_point: &RawPoint) -> Self {
+        Point::new(
+            raw_point.x.try_into().unwrap(),
+            raw_point.y.try_into().unwrap(),
+        )
     }
 
     fn directions_to<Q: PointLike>(&self, other: &Q) -> Vec<RectDirection> {

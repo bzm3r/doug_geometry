@@ -5,6 +5,8 @@ mod path;
 mod point;
 mod polygon;
 mod rect;
+mod sanitization;
+mod extrema;
 
 pub use path::*;
 pub use point::*;

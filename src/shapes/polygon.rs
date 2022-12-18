@@ -1,7 +1,10 @@
 use crate::decomp::{Corners, RectCorner};
-use crate::shapes::Point;
+use crate::shapes::sanitization::{check_sequence_rectilinearity, deduplicate_points};
+use crate::shapes::{Point, PointLike, RectDirection};
 use rkyv::{Archive, Deserialize, Serialize};
-use vlsir::raw::Point as RawPoint;
+
+use crate::shapes::extrema::find_max_x_min_y_point;
+pub use vlsir::raw::Polygon as RawPolygon;
 
 #[derive(
     Debug,
@@ -22,8 +25,31 @@ pub struct Polygon {
 }
 
 impl Polygon {
-    pub fn from_raw(_raw_points: Vec<RawPoint>) -> Polygon {
-        todo!()
+    pub fn from_raw(layer: u8, raw_polygon: RawPolygon) -> Polygon {
+        let points = raw_polygon
+            .vertices
+            .iter()
+            .map(|point| Point::from_raw(&point))
+            .collect();
+        let mut points = deduplicate_points(points);
+        let max_x_min_y_ix = find_max_x_min_y_point(&points);
+
+        points.rotate_left(max_x_min_y_ix);
+        let directions = check_sequence_rectilinearity(&points);
+
+        match directions[0] {
+            RectDirection::Down => panic!("Expected first point to be the max-x, min-y point, so there cannot be a point below it!"),
+            RectDirection::Left => {
+                // after this operation, the max_x_min_y point will be the last point
+                points.reverse();
+                // so we need to rotate one to the right
+                points.rotate_right(1);
+            },
+            RectDirection::Right => panic!("Expected first point to be the max-x, min-y point, so there cannot be a point right of it!"),
+            RectDirection::Up => {},
+        }
+
+        Polygon { points, layer }
     }
 
     pub fn corners(&self) -> Corners<Point> {
