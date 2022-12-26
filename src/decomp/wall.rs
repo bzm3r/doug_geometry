@@ -66,20 +66,14 @@ where
                 if corner_type.vertical_part() == RectDirection::Up {
                     self.rect_corners.push(rect_corner);
                 } else {
-                    panic!(
-                        "Cannot push a {:?} into a Forward vertical wall",
-                        corner_type
-                    );
+                    panic!("Cannot push a {corner_type:?} into a Forward vertical wall");
                 }
             }
             WallAttitude::Reverse => {
                 if corner_type.vertical_part() == RectDirection::Down {
                     self.rect_corners.push(rect_corner);
                 } else {
-                    panic!(
-                        "Cannot push a {:?} into a Reverse vertical wall",
-                        corner_type
-                    );
+                    panic!("Cannot push a {corner_type:?} into a Reverse vertical wall");
                 }
             }
         }
@@ -152,11 +146,11 @@ where
     pub fn left_of_wall<Q: PointLike>(&self, other: &Wall<Q>) -> Option<bool> {
         if let Some(projection_result) = self.project_onto_wall(other.top_most().point()) {
             Some(projection_result.projected.x() < other.top_most().point().x())
-        } else if let Some(projection_result) = self.project_onto_wall(other.bottom_most().point())
-        {
-            Some(projection_result.projected.x() < other.bottom_most().point().x())
         } else {
-            None
+            self.project_onto_wall(other.bottom_most().point())
+                .map(|projection_result| {
+                    projection_result.projected.x() < other.bottom_most().point().x()
+                })
         }
     }
 }

@@ -5,7 +5,7 @@ use bevy_prototype_lyon::geometry::GeometryBuilder;
 use bevy_prototype_lyon::plugin::ShapePlugin;
 use bevy_prototype_lyon::shapes as LyonShapes;
 use doug_geometry::decomp::tests::spiral_poly;
-use doug_geometry::shapes::{Point, PointLike};
+use doug_geometry::shapes::PointLike;
 
 fn main() {
     App::new()

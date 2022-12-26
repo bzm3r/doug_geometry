@@ -28,7 +28,7 @@ impl CornerType {
             (RectDirection::Right, RectDirection::Down) => Self::RightDown,
             (RectDirection::Up, RectDirection::Right) => Self::UpRight,
             (RectDirection::Left, RectDirection::Up) => Self::LeftUp,
-            (incoming, outgoing) => panic!("Invalid incoming/outgoing directions for a rectilinear corner! Incoming: {:?}  Outgoing: {:?}", incoming, outgoing),
+            (incoming, outgoing) => panic!("Invalid incoming/outgoing directions for a rectilinear corner! Incoming: {incoming:?}  Outgoing: {outgoing:?}"),
         }
     }
 
@@ -163,8 +163,8 @@ impl<P: PointLike> Corners<P> {
             .iter()
             .enumerate()
             .filter_map(|(ix, corner)| (corner.point().x() == min_x).then_some((ix, corner)))
-            .max_by_key(|(ix, corner)| corner.point().y())
-            .map(|(ix, corner)| ix)
+            .max_by_key(|(_ix, corner)| corner.point().y())
+            .map(|(ix, _corner)| ix)
             .unwrap()
     }
 
@@ -179,8 +179,8 @@ impl<P: PointLike> Corners<P> {
             .iter()
             .enumerate()
             .filter_map(|(ix, corner)| (corner.point().y() == min_y).then_some((ix, corner)))
-            .min_by_key(|(ix, corner)| corner.point().x())
-            .map(|(ix, corner)| ix)
+            .min_by_key(|(_ix, corner)| corner.point().x())
+            .map(|(ix, _corner)| ix)
             .unwrap()
     }
 

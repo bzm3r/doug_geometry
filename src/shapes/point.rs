@@ -130,7 +130,7 @@ pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq + Hash + Debug 
     }
 
     fn rotate(&self) -> Self {
-        Self::new(-1 * self.y(), self.x())
+        Self::new(-self.y(), self.x())
     }
 
     fn as_tuple(&self) -> (i32, i32) {

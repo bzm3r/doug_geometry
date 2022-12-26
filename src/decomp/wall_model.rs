@@ -18,7 +18,7 @@ where
         }
     }
 
-    pub fn push(&mut self, mut wall: Wall<P>) {
+    pub fn push(&mut self, wall: Wall<P>) {
         self.walls.push(wall);
     }
 

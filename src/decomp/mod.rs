@@ -65,7 +65,7 @@ pub mod tests {
     }
 
     pub fn rotate_poly(polygon: Polygon) -> Polygon {
-        let Polygon { points, layer } = polygon;
+        let Polygon { points, layer: _ } = polygon;
         let points = Polygon::sanitize_points(points.iter().map(Point::rotate).collect());
         Polygon { points, layer: 0 }
     }

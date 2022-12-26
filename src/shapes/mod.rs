@@ -137,7 +137,7 @@ pub fn bbbox(arc: std::sync::Arc<&ArchivedVec<ArchivedShape>>) -> BoundingBox {
 
     let rem = len % cpus;
 
-    println!("len: {}, num_cpus: {}, {}", len, cpus, rem);
+    println!("len: {len}, num_cpus: {cpus}, {rem}");
 
     let mut bbox = UnvalidatedBoundingBox::invalid();
 

@@ -47,11 +47,7 @@ impl Polygon {
         points
     }
     pub fn from_raw(layer: u8, raw_polygon: RawPolygon) -> Polygon {
-        let points = raw_polygon
-            .vertices
-            .iter()
-            .map(|point| Point::from_raw(&point))
-            .collect();
+        let points = raw_polygon.vertices.iter().map(Point::from_raw).collect();
 
         Polygon {
             points: Self::sanitize_points(points),

@@ -2,7 +2,6 @@ mod bbox;
 pub mod decomp;
 pub mod shapes;
 
-use crate::shapes::{PointLike, PolyRect, Polygon, RectDirection};
 //
 // impl PolyDecomposer {
 //     pub fn from_poly(poly: Polygon) -> PolyDecomposer {
