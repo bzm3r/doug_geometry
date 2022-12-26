@@ -25,12 +25,7 @@ pub struct Polygon {
 }
 
 impl Polygon {
-    pub fn from_raw(layer: u8, raw_polygon: RawPolygon) -> Polygon {
-        let points = raw_polygon
-            .vertices
-            .iter()
-            .map(|point| Point::from_raw(&point))
-            .collect();
+    pub fn sanitize_points(points: Vec<Point>) -> Vec<Point> {
         let mut points = deduplicate_points(points);
         let max_x_min_y_ix = find_max_x_min_y_point(&points);
 
@@ -49,7 +44,19 @@ impl Polygon {
             RectDirection::Up => {},
         }
 
-        Polygon { points, layer }
+        points
+    }
+    pub fn from_raw(layer: u8, raw_polygon: RawPolygon) -> Polygon {
+        let points = raw_polygon
+            .vertices
+            .iter()
+            .map(|point| Point::from_raw(&point))
+            .collect();
+
+        Polygon {
+            points: Self::sanitize_points(points),
+            layer,
+        }
     }
 
     pub fn corners(&self) -> Corners<Point> {

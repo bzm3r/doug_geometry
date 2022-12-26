@@ -1,6 +1,9 @@
 use crate::shapes::RectDirection;
 use derive_more::{Add, Sub};
 use rkyv::{Archive, Deserialize, Serialize};
+use std::cmp::Ordering;
+use std::fmt::Debug;
+use std::hash::{Hash, Hasher};
 
 pub use vlsir::raw::Point as RawPoint;
 
@@ -64,6 +67,13 @@ impl PartialEq<Self> for ArchivedPoint {
 
 impl Eq for ArchivedPoint {}
 
+impl Hash for ArchivedPoint {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.x.hash(state);
+        self.y.hash(state);
+    }
+}
+
 impl PointLike for ArchivedPoint {
     fn x(&self) -> i32 {
         self.x
@@ -78,7 +88,7 @@ impl PointLike for ArchivedPoint {
     }
 }
 
-pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq {
+pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq + Hash + Debug {
     fn x(&self) -> i32;
     fn y(&self) -> i32;
     fn new(x: i32, y: i32) -> Self;
@@ -88,7 +98,7 @@ pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq {
     }
 
     fn from_raw(raw_point: &RawPoint) -> Self {
-        Point::new(
+        Self::new(
             raw_point.x.try_into().unwrap(),
             raw_point.y.try_into().unwrap(),
         )
@@ -96,18 +106,19 @@ pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq {
 
     fn directions_to<Q: PointLike>(&self, other: &Q) -> Vec<RectDirection> {
         let mut result = Vec::with_capacity(2);
-        use RectDirection::*;
-        if self.x() > other.x() {
-            result.push(Left)
-        } else if self.x() < other.x() {
-            result.push(Right)
+
+        match self.x().cmp(&other.x()) {
+            Ordering::Less => result.push(RectDirection::Right),
+            Ordering::Greater => result.push(RectDirection::Left),
+            _ => {}
         }
 
-        if self.y() > other.y() {
-            result.push(Down)
-        } else if self.x() < other.y() {
-            result.push(Up)
+        match self.y().cmp(&other.y()) {
+            Ordering::Less => result.push(RectDirection::Up),
+            Ordering::Greater => result.push(RectDirection::Down),
+            _ => {}
         }
+
         result
     }
 
@@ -116,6 +127,14 @@ pub trait PointLike: Into<Point> + Copy + Clone + PartialEq + Eq {
         let moves_to = self.directions_to(other);
         assert_eq!(moves_to.len(), 1);
         moves_to[0]
+    }
+
+    fn rotate(&self) -> Self {
+        Self::new(-1 * self.y(), self.x())
+    }
+
+    fn as_tuple(&self) -> (i32, i32) {
+        (self.x(), self.y())
     }
 }
 

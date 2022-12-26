@@ -39,7 +39,7 @@ where
 {
     default_wall_capacity: usize,
     current_wall: Wall<P>,
-    walls: WallModel<P>,
+    wall_model: WallModel<P>,
 }
 
 impl<P> WallModeler<P>
@@ -47,7 +47,7 @@ where
     P: PointLike,
 {
     pub fn build(polygon: &Polygon) -> WallModel<P> {
-        let corners = polygon.corners();
+        let corners = polygon.corners().corners;
         let mut walls_builder = Self::new(polygon.layer, corners.len() / 2);
 
         for corner in corners.into_iter() {
@@ -61,22 +61,24 @@ where
         WallModeler {
             default_wall_capacity,
             current_wall: Wall::new_forward(0, default_wall_capacity),
-            walls: WallModel::new(layer),
+            wall_model: WallModel::new(layer),
         }
     }
 
     fn force_push_forward(&mut self, rect_corner: RectCorner<P>) {
         if self.current_wall.is_reverse() {
-            self.walls.push(self.current_wall.clone());
-            self.current_wall = Wall::new_forward(self.walls.len(), self.default_wall_capacity);
+            self.wall_model.push(self.current_wall.clone());
+            self.current_wall =
+                Wall::new_forward(self.wall_model.walls.len(), self.default_wall_capacity);
         }
         self.current_wall.push(rect_corner);
     }
 
     fn force_push_reverse(&mut self, rect_corner: RectCorner<P>) {
         if self.current_wall.is_forward() {
-            self.walls.push(self.current_wall.clone());
-            self.current_wall = Wall::new_reverse(self.walls.len(), self.default_wall_capacity);
+            self.wall_model.push(self.current_wall.clone());
+            self.current_wall =
+                Wall::new_reverse(self.wall_model.walls.len(), self.default_wall_capacity);
         }
         self.current_wall.push(rect_corner);
     }
@@ -95,8 +97,8 @@ where
     }
 
     pub fn finish(mut self) -> WallModel<P> {
-        self.walls.push(self.current_wall.clone());
+        self.wall_model.push(self.current_wall.clone());
 
-        self.walls
+        self.wall_model
     }
 }

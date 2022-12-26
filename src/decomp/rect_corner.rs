@@ -146,42 +146,40 @@ where
 pub struct Corners<P: PointLike> {
     vertical_inversions: usize,
     horizontal_inversions: usize,
-    left_most_bottom_most: usize,
-    bottom_most_right_most: usize,
-    corners: Vec<RectCorner<P>>,
+    min_x_max_y_index: usize,
+    min_y_min_x_index: usize,
+    pub corners: Vec<RectCorner<P>>,
 }
 
 impl<P: PointLike> Corners<P> {
-    pub fn left_most_bottom_most(corners: &[RectCorner<P>]) -> usize {
-        let left_most_coordinate = corners
+    pub fn min_x_max_y_index(corners: &[RectCorner<P>]) -> usize {
+        let min_x = corners
             .iter()
             .map(|corner| corner.point().x())
             .min()
             .unwrap();
+
         corners
             .iter()
             .enumerate()
-            .filter_map(|(ix, corner)| {
-                (corner.point().x() == left_most_coordinate).then_some((ix, corner))
-            })
-            .min_by_key(|(ix, corner)| corner.point().y())
+            .filter_map(|(ix, corner)| (corner.point().x() == min_x).then_some((ix, corner)))
+            .max_by_key(|(ix, corner)| corner.point().y())
             .map(|(ix, corner)| ix)
             .unwrap()
     }
 
-    pub fn bottom_most_right_most(corners: &[RectCorner<P>]) -> usize {
-        let bottom_most_coordinate = corners
+    pub fn min_y_min_x_index(corners: &[RectCorner<P>]) -> usize {
+        let min_y = corners
             .iter()
             .map(|corner| corner.point().y())
             .min()
             .unwrap();
+
         corners
             .iter()
             .enumerate()
-            .filter_map(|(ix, corner)| {
-                (corner.point().y() == bottom_most_coordinate).then_some((ix, corner))
-            })
-            .max_by_key(|(ix, corner)| corner.point().x())
+            .filter_map(|(ix, corner)| (corner.point().y() == min_y).then_some((ix, corner)))
+            .min_by_key(|(ix, corner)| corner.point().x())
             .map(|(ix, corner)| ix)
             .unwrap()
     }
@@ -231,17 +229,16 @@ impl<P: PointLike> Corners<P> {
     }
 
     pub fn new(corners: Vec<RectCorner<P>>) -> Self {
-        let left_most_bottom_most = Self::left_most_bottom_most(&corners);
-        let bottom_most_right_most = Self::bottom_most_right_most(&corners);
-        let horizontal_inversions =
-            Self::count_horizontal_inversions(left_most_bottom_most, &corners);
-        let vertical_inversions = Self::count_vertical_inversions(bottom_most_right_most, &corners);
+        let min_x_max_y_index = Self::min_x_max_y_index(&corners);
+        let min_y_min_x_index = Self::min_y_min_x_index(&corners);
+        let horizontal_inversions = Self::count_horizontal_inversions(min_x_max_y_index, &corners);
+        let vertical_inversions = Self::count_vertical_inversions(min_y_min_x_index, &corners);
 
         Self {
             vertical_inversions,
             horizontal_inversions,
-            left_most_bottom_most,
-            bottom_most_right_most,
+            min_x_max_y_index,
+            min_y_min_x_index,
             corners,
         }
     }

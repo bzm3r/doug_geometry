@@ -1,12 +1,12 @@
 use crate::bbox::{BoundingBox, CalculateBoundingBox, UnvalidatedBoundingBox};
 use rkyv::{vec::ArchivedVec, Archive, Deserialize, Serialize};
 
+mod extrema;
 mod path;
 mod point;
 mod polygon;
 mod rect;
 mod sanitization;
-mod extrema;
 
 pub use path::*;
 pub use point::*;
@@ -48,14 +48,14 @@ impl CalculateBoundingBox for ArchivedShape {
             Self::Rect(r) => {
                 let mut bbox = UnvalidatedBoundingBox::invalid();
 
-                bbox.min.x = r.p0.x.min(bbox.min.x);
-                bbox.min.y = r.p0.y.min(bbox.min.y);
-                bbox.max.x = r.p0.x.max(bbox.max.x);
-                bbox.max.y = r.p0.y.max(bbox.max.y);
-                bbox.min.x = r.p1.x.min(bbox.min.x);
-                bbox.min.y = r.p1.y.min(bbox.min.y);
-                bbox.max.x = r.p1.x.max(bbox.max.x);
-                bbox.max.y = r.p1.y.max(bbox.max.y);
+                bbox.min.x = r.rect.p0.x.min(bbox.min.x);
+                bbox.min.y = r.rect.p0.y.min(bbox.min.y);
+                bbox.max.x = r.rect.p0.x.max(bbox.max.x);
+                bbox.max.y = r.rect.p0.y.max(bbox.max.y);
+                bbox.min.x = r.rect.p1.x.min(bbox.min.x);
+                bbox.min.y = r.rect.p1.y.min(bbox.min.y);
+                bbox.max.x = r.rect.p1.x.max(bbox.max.x);
+                bbox.max.y = r.rect.p1.y.max(bbox.max.y);
 
                 BoundingBox::new(bbox)
             }
@@ -92,14 +92,14 @@ impl CalculateBoundingBox for Shape {
             Self::Rect(r) => {
                 let mut bbox = UnvalidatedBoundingBox::invalid();
 
-                bbox.min.x = r.p0.x.min(bbox.min.x);
-                bbox.min.y = r.p0.y.min(bbox.min.y);
-                bbox.max.x = r.p0.x.max(bbox.max.x);
-                bbox.max.y = r.p0.y.max(bbox.max.y);
-                bbox.min.x = r.p1.x.min(bbox.min.x);
-                bbox.min.y = r.p1.y.min(bbox.min.y);
-                bbox.max.x = r.p1.x.max(bbox.max.x);
-                bbox.max.y = r.p1.y.max(bbox.max.y);
+                bbox.min.x = r.rect.p0.x.min(bbox.min.x);
+                bbox.min.y = r.rect.p0.y.min(bbox.min.y);
+                bbox.max.x = r.rect.p0.x.max(bbox.max.x);
+                bbox.max.y = r.rect.p0.y.max(bbox.max.y);
+                bbox.min.x = r.rect.p1.x.min(bbox.min.x);
+                bbox.min.y = r.rect.p1.y.min(bbox.min.y);
+                bbox.max.x = r.rect.p1.x.max(bbox.max.x);
+                bbox.max.y = r.rect.p1.y.max(bbox.max.y);
 
                 BoundingBox::new(bbox)
             }

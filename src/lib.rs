@@ -1,6 +1,6 @@
 mod bbox;
-pub mod shapes;
 pub mod decomp;
+pub mod shapes;
 
 use crate::shapes::{PointLike, PolyRect, Polygon, RectDirection};
 //

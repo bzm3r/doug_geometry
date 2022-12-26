@@ -23,7 +23,7 @@ pub fn check_sequence_rectilinearity<P: PointLike>(points: &[P]) -> Vec<RectDire
         .windows(2)
         .map(|point_window| {
             let [p0, p1]: [_; 2] = point_window.try_into().ok().unwrap();
-            let directions_to = p0.directions_to(p1);
+            let directions_to = p0.directions_to(&p1);
             assert_eq!(directions_to.len(), 1);
             directions_to[0]
         })

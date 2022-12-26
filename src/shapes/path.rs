@@ -101,7 +101,11 @@ pub fn shift_left_up<P: PointLike>(
 }
 
 /// A 2-point path that moves horizontally
-pub fn simple_horizontal_path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Polygon {
+pub fn simple_horizontal_path_to_poly<P: PointLike>(
+    points: &[P],
+    width: u32,
+    layer: u8,
+) -> Polygon {
     let half_width = (width / 2) as i32;
 
     let points = vec![
@@ -208,6 +212,7 @@ pub fn path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Polygo
         let p0 = points[ix];
         let p1 = points[ix + 1];
         let next_move = p0.simple_directions_to(&p1);
+
         match (last_direction, next_move) {
             (RectDirection::Right, RectDirection::Right) => shift_pure_right(
                 &mut forward_poly_points,

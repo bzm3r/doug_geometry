@@ -6,33 +6,46 @@ pub use rect_corner::*;
 pub use wall::*;
 pub use wall_model::*;
 
-pub mod PolyBuilder {}
+pub mod tests {
+    use crate::shapes::{path_to_poly, Path, Point, PointLike, Polygon, RectDirection};
 
-#[cfg(test)]
-mod tests {
-    use crate::shapes::{path_to_poly, Path, Point, PointLike, Polygon};
-
-    fn spiral_path(vertical_inversions: usize) -> Path {
-        let mut vertical = true;
-        let mut executed_inversions = 0;
-        let mut points = Vec::with_capacity(2 * vertical_inversions);
+    pub fn spiral_path(spiral_inversions: usize) -> Path {
+        let moves = [
+            RectDirection::Right,
+            RectDirection::Up,
+            RectDirection::Left,
+            RectDirection::Down,
+        ];
+        let mut executed_moves: usize = 0;
+        let mut points = Vec::with_capacity(2 * spiral_inversions);
         let mut jump = 0;
         let mut cursor_point = Point::new(0, 0);
 
         points.push(cursor_point);
-        while executed_inversions <= vertical_inversions {
-            if vertical {
-                jump += 1;
-                cursor_point = cursor_point + Point::new(0, jump);
-                executed_inversions += 1;
-            }
-            {
-                jump += 2;
-                cursor_point = cursor_point + Point::new(jump, 0);
-            }
+        while executed_moves / 2 <= spiral_inversions {
+            let delta = match moves[executed_moves % 4] {
+                RectDirection::Down => {
+                    jump += 1;
+                    Point::new(0, -jump)
+                }
+                RectDirection::Left => {
+                    jump += 2;
+                    Point::new(-jump, 0)
+                }
+                RectDirection::Right => {
+                    jump += 2;
+                    Point::new(jump, 0)
+                }
+                RectDirection::Up => {
+                    jump += 1;
+                    Point::new(0, jump)
+                }
+            };
+
+            executed_moves += 1;
+            cursor_point = cursor_point + delta;
 
             points.push(cursor_point);
-            vertical = !vertical;
         }
 
         Path {
@@ -42,16 +55,18 @@ mod tests {
         }
     }
 
-    fn spiral_poly(vertical_inversions: usize) -> Polygon {
+    pub fn spiral_poly(spiral_inversions: usize) -> Polygon {
         let Path {
             points,
             width,
             layer,
-        } = spiral_path(vertical_inversions);
+        } = spiral_path(spiral_inversions);
         path_to_poly(&points, width, layer)
     }
 
-    fn rotate_poly(polygon: Polygon) -> Polygon {
+    pub fn rotate_poly(polygon: Polygon) -> Polygon {
         let Polygon { points, layer } = polygon;
+        let points = Polygon::sanitize_points(points.iter().map(Point::rotate).collect());
+        Polygon { points, layer: 0 }
     }
 }

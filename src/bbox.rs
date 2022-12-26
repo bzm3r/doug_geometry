@@ -28,14 +28,14 @@ impl UnvalidatedBoundingBox {
     pub fn update(&mut self, shape: &ArchivedShape) {
         match shape {
             ArchivedShape::Rect(r) => {
-                self.min.x = r.p0.x.min(self.min.x);
-                self.min.y = r.p0.y.min(self.min.y);
-                self.max.x = r.p0.x.max(self.max.x);
-                self.max.y = r.p0.y.max(self.max.y);
-                self.min.x = r.p1.x.min(self.min.x);
-                self.min.y = r.p1.y.min(self.min.y);
-                self.max.x = r.p1.x.max(self.max.x);
-                self.max.y = r.p1.y.max(self.max.y);
+                self.min.x = r.rect.p0.x.min(self.min.x);
+                self.min.y = r.rect.p0.y.min(self.min.y);
+                self.max.x = r.rect.p0.x.max(self.max.x);
+                self.max.y = r.rect.p0.y.max(self.max.y);
+                self.min.x = r.rect.p1.x.min(self.min.x);
+                self.min.y = r.rect.p1.y.min(self.min.y);
+                self.max.x = r.rect.p1.x.max(self.max.x);
+                self.max.y = r.rect.p1.y.max(self.max.y);
             }
             ArchivedShape::Poly(p) => {
                 for pt in p.points.iter() {
