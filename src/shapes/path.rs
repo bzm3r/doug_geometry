@@ -290,7 +290,8 @@ pub fn path_to_poly<P: PointLike>(points: &[P], width: u32, layer: u8) -> Polygo
         .map(|p| p.into())
         .collect();
 
-    Polygon { points, layer }
+    
+    Polygon { points: Polygon::sanitize_points(points), layer }
 }
 
 impl Path {

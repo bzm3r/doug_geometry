@@ -84,10 +84,7 @@ where
     }
 
     pub fn is_forward(&self) -> bool {
-        match self.attitude {
-            WallAttitude::Forward => true,
-            _ => false,
-        }
+        matches!(self.attitude, WallAttitude::Forward)
     }
 
     pub fn is_reverse(&self) -> bool {
@@ -152,6 +149,12 @@ where
                     projection_result.projected.x() < other.bottom_most().point().x()
                 })
         }
+    }
+
+    pub fn iter_corner_points(&self) -> impl Iterator<Item = P> + '_ {
+        self.rect_corners
+            .iter()
+            .map(|rect_corner| rect_corner.point())
     }
 }
 

@@ -22,14 +22,19 @@ where
         self.walls.push(wall);
     }
 
+    pub fn sorted_walls(&self) -> Vec<Wall<P>> {
+        self.walls.clone().into_sorted_vec()
+    }
+
     pub fn decompose(&self) -> PolyRect {
-        for wall in self.walls.iter() {
-            if wall.is_forward() {}
-        }
-        PolyRect {
-            rects: vec![],
-            layer: self.layer,
-        }
+        unimplemented!()
+        // for wall in self.walls.iter() {
+        //     if wall.is_forward() {}
+        // }
+        // PolyRect {
+        //     rects: vec![],
+        //     layer: self.layer,
+        // }
     }
 }
 

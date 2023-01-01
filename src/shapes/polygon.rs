@@ -46,6 +46,7 @@ impl Polygon {
 
         points
     }
+    
     pub fn from_raw(layer: u8, raw_polygon: RawPolygon) -> Polygon {
         let points = raw_polygon.vertices.iter().map(Point::from_raw).collect();
 
@@ -59,7 +60,11 @@ impl Polygon {
         let mut corners = Vec::with_capacity(self.points.len());
 
         for ix in 0..self.points.len() {
-            let last_ix = (ix - 1) % self.points.len();
+            let last_ix = if ix == 0 {
+                self.points.len() - 1
+            } else {
+                ix - 1
+            };
             let next_ix = (ix + 1) % self.points.len();
             let incoming = self.points[last_ix];
             let outgoing = self.points[next_ix];

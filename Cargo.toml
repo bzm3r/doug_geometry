@@ -10,7 +10,6 @@ derive_more = "0.99.17"
 rkyv = "0.7.39"
 serde = { version = "1.0.147", features = ["derive"] }
 vlsir = "2"
-svg = "0.13.0"
 bevy = "0.9"
 bevy_prototype_lyon = "0.7"
 bevy_pancam = "0.7"
