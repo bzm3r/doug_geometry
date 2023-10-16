@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::shapes::RectDirection;
 use derive_more::{Add, Sub};
 use rkyv::{Archive, Deserialize, Serialize};
@@ -76,17 +78,19 @@ pub trait PointLike: Into<Point> + Copy + Clone {
     fn directions_to<Q: PointLike>(&self, other: &Q) -> Vec<RectDirection> {
         let mut result = Vec::with_capacity(2);
         use RectDirection::*;
-        if self.x() > other.x() {
-            result.push(Left)
-        } else if self.x() < other.x() {
-            result.push(Right)
+
+        match self.x().cmp(&other.x()) {
+            Ordering::Less => result.push(Right),
+            Ordering::Equal => {}
+            Ordering::Greater => result.push(Left),
         }
 
-        if self.y() > other.y() {
-            result.push(Down)
-        } else if self.x() < other.y() {
-            result.push(Up)
+        match self.y().cmp(&other.y()) {
+            Ordering::Less => result.push(Up),
+            Ordering::Equal => {}
+            Ordering::Greater => result.push(Down),
         }
+
         result
     }
 
