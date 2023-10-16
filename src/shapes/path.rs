@@ -1,6 +1,7 @@
 use crate::shapes::{Point, PointLike, Poly, RectDirection};
 use rkyv::{Archive, Deserialize, Serialize};
 
+/// A path that can be converted into a rectilinear polygon.
 #[derive(
     Debug,
     Eq,
